@@ -9,13 +9,13 @@ const jobPostValue = new Schema(
     job_title: {
       type: String,
       minLength: 5,
-      maxLength: 100,
+      maxLength: 150,
       required: true,
     },
     company_description: {
       type: String,
       minLength: 40,
-      maxLength: 200,
+      maxLength: 700,
       required: true,
     },
     role_job: {
