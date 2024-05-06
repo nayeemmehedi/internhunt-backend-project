@@ -23,6 +23,8 @@ const verifyIdToken = async (idToken) => {
 const goggleLogin = async (req, res) => {
   try {
     const user = await verifyIdToken(req.body.idToken);
+
+
     let payload = await signup.findOne({ email: user.email });
     let newUser = new signup({
       email: user.email,
@@ -68,8 +70,8 @@ const goggleLogin = async (req, res) => {
       const responseData = new ApiResponse(
         200,
         {
-          accessToken,
-          refreshToken,
+          accessToken:payload.accessToken,
+          refreshToken : payload.refreshToken,
           userName: payload.username,
           userEmail: payload.email,
           role: payload.role,
