@@ -3,6 +3,8 @@ const signup = require("../models/signup.models.js");
 const LogOutController = async (req, res) => {
   const { refreshToken } = req.body;
 
+  
+
   try {
     // Find the user by the refresh token
     const user = await signup.findOne({ refreshToken: refreshToken });

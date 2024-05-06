@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const { signupRoutes } = require("./routes/authentication.routes.js");
 const { companyRoutes } = require("./routes/company.routes.js");
 const { internRoutes } = require("./routes/intern.routes.js");
+const serviceAccountValue = require("./utils/firebase.jsx");
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 app.use(cookieParser());
 
 
+
 app.get("/",(req, res) => {
   res.send("Welcome");
 });
@@ -39,6 +41,7 @@ app.get("/",(req, res) => {
 app.use("/api/v1", signupRoutes)
 app.use("/api/v1/company", companyRoutes)
 app.use("/api/v1/intern", internRoutes)
+
 
 
 

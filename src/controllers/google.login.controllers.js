@@ -1,10 +1,11 @@
 const admin = require("firebase-admin");
 const { ApiResponse } = require("../utils/apiHandler.js");
-const serviceAccount = require("../utils/firebase.json");
+// const serviceAccount = require("../utils/firebase.json");
 const signup = require("../models/signup.models.js");
+const serviceAccountValue = require("../utils/firebase.jsx");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(serviceAccountValue),
 });
 
 const verifyIdToken = async (idToken) => {
@@ -46,7 +47,7 @@ const goggleLogin = async (req, res) => {
         {
           accessToken,
           refreshToken,
-          username: payloadnew.username,
+          userName: payloadnew.username,
           userEmail: payloadnew.email,
           role: payloadnew.role,
           pending: payloadnew.pending,
