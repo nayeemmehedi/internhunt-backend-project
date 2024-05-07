@@ -20,40 +20,35 @@ const verifyIdToken = async (idToken) => {
   }
 };
 
+
 const goggleLogin = async (req, res) => {
   try {
-    const user = await verifyIdToken(req.body.idToken);
-
-
-    let payload = await signup.findOne({ email: user.email });
+    const user_token = await verifyIdToken(req.body.idToken);
+    let firebase_user_info = await signup.findOne({ email: user_token.email });
     let newUser = new signup({
-      email: user.email,
-      username: user.displayName,
-      googleId: user,
-      emailVerified: user.emailVerified,
-      // _id:user.uid
+      email: user_token.email,
+      username: user_token.displayName,
+      googleId: user_token,
+      emailVerified: user_token.emailVerified,
     });
     const accessToken = newUser.accessTokenMethods(newUser);
     const refreshToken = newUser.refreshTokenMethods(newUser);
     newUser.refreshToken = refreshToken;
 
-    if (!payload) {
+    if (!firebase_user_info) {
       await newUser.save();
-      let payloadnew = await signup.findOne({ email: user.email });
-      const options = {
-        httpOnly: true,
-        secure: true,
-      };
+      let withoutRefeshTokenUser = await signup.findOne({ email: user_token.email });
+      const options = { httpOnly: true, secure: true };
       const responseData = new ApiResponse(
         200,
         {
           accessToken,
           refreshToken,
-          userName: payloadnew.username,
-          userEmail: payloadnew.email,
-          role: payloadnew.role,
-          pending: payloadnew.pending,
-          id: payloadnew._id,
+          userName: withoutRefeshTokenUser.username,
+          userEmail: withoutRefeshTokenUser.email,
+          role: withoutRefeshTokenUser.role,
+          pending: withoutRefeshTokenUser.pending,
+          id: withoutRefeshTokenUser._id,
         },
         true
       );
@@ -63,20 +58,17 @@ const goggleLogin = async (req, res) => {
         .cookie("refreshToken", refreshToken, options)
         .json(responseData);
     } else {
-      const options = {
-        httpOnly: true,
-        secure: true,
-      };
+      const options = { httpOnly: true, secure: true };
       const responseData = new ApiResponse(
         200,
         {
-          accessToken:payload.accessToken,
-          refreshToken : payload.refreshToken,
-          userName: payload.username,
-          userEmail: payload.email,
-          role: payload.role,
-          pending: payload.pending,
-          id: payload._id,
+          accessToken: firebase_user_info.accessToken,
+          refreshToken: firebase_user_info.refreshToken,
+          userName: firebase_user_info.username,
+          userEmail: firebase_user_info.email,
+          role: firebase_user_info.role,
+          pending: firebase_user_info.pending,
+          id: firebase_user_info._id,
         },
         true
       );
@@ -87,7 +79,7 @@ const goggleLogin = async (req, res) => {
         .json(responseData);
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.toString() ,message:error.message});
   }
 };
 

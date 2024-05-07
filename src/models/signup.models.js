@@ -96,7 +96,7 @@ signupValue.method("passwordCheck", async function (password) {
 signupValue.methods.accessTokenMethods = function (data) {
   return jwt.sign(
     {
-      _id: data._id,
+      // _id: data._id,
       email: data.email,
     },
     process.env.accees_token_secrat,
@@ -107,7 +107,7 @@ signupValue.methods.accessTokenMethods = function (data) {
 signupValue.methods.refreshTokenMethods = function (data) {
   return jwt.sign(
     {
-      _id: data._id,
+      // _id: data._id,
       email: data.email,
     },
     process.env.refresh_token_secrat,

@@ -6,32 +6,71 @@ const loginController = async (req, res) => {
 
   try {
     if (!email || !password || !role) {
-      return res.status(400).json(new ApiResponse(400, { message: "Please enter valid credentials..." }, false));
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            { message: "Please enter valid credentials..." },
+            false
+          )
+        );
     }
 
     const user = await signup.findOne({ email });
     if (!user) {
-      return res.status(400).json(new ApiResponse(400, { message: "Please enter valid credentials!" }, false));
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            { message: "Please enter valid credentials!" },
+            false
+          )
+        );
     }
 
     const checkPasswordDone = await user.passwordCheck(password);
     if (!checkPasswordDone) {
-      return res.status(400).json(new ApiResponse(400, { message: "Invalid password!!!" }, false));
+      return res
+        .status(400)
+        .json(new ApiResponse(400, { message: "Invalid password!!!" }, false));
     }
 
     if (role !== user.role) {
-      return res.status(400).json(new ApiResponse(400, { message: "Please enter a valid role" }, false));
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(400, { message: "Please enter a valid role" }, false)
+        );
     }
 
     if (user.pending) {
-      return res.status(400).json(new ApiResponse(400, { message: "Still Panding for request Company" }, false));
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            { message: "Still Panding for request Company" },
+            false
+          )
+        );
     }
 
     const accessToken = user.accessTokenMethods(user);
     const refreshToken = user.refreshTokenMethods(user);
 
     user.refreshToken = refreshToken;
+
     await user.save();
+
+    const newUser = await signup.findOne({ email });
+
+    if (!newUser.refreshToken) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, { message: "Token issue" }, false));
+    }
 
     const options = {
       httpOnly: true,
@@ -52,12 +91,17 @@ const loginController = async (req, res) => {
       true
     );
 
-    res.status(200)
+    res
+      .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
       .json(responseData);
   } catch (error) {
-    res.status(400).json(new ApiResponse(400, { message: error.message, error: error }, false));
+    res
+      .status(400)
+      .json(
+        new ApiResponse(400, { message: error.message, error: error }, false)
+      );
   }
 };
 
@@ -88,7 +132,11 @@ const CompanyInfoController = async (req, res) => {
 
     res.status(200).json(responseData);
   } catch (error) {
-    res.status(400).json(new ApiResponse(400, { message: error.message, error: error }, false));
+    res
+      .status(400)
+      .json(
+        new ApiResponse(400, { message: error.message, error: error }, false)
+      );
   }
 };
 
