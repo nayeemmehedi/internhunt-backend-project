@@ -57,7 +57,11 @@ const totalJobController = async (req, res) => {
       limit: limit,
     };
 
-    res.json(responseData);
+    res.json( new ApiResponse(
+      200,
+      { message: "Successfully Login", data: responseData },
+      true
+    ));
   } catch (error) {
     res.status(400).json({ message: error.message, error: error });
   }
