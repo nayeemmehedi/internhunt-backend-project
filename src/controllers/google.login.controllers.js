@@ -25,17 +25,20 @@ const goggleLogin = async (req, res) => {
   try {
     const user_token = await verifyIdToken(req.body.idToken);
     let firebase_user_info = await signup.findOne({ email: user_token.email });
-    let newUser = new signup({
-      email: user_token.email,
-      username: user_token.displayName,
-      googleId: user_token,
-      emailVerified: user_token.emailVerified,
-    });
-    const accessToken = newUser.accessTokenMethods(newUser);
-    const refreshToken = newUser.refreshTokenMethods(newUser);
-    newUser.refreshToken = refreshToken;
+   
+   
 
     if (!firebase_user_info) {
+
+      let newUser = new signup({
+        email: user_token.email,
+        username: user_token.displayName,
+        googleId: user_token,
+        emailVerified: user_token.emailVerified,
+      });
+      const accessToken = newUser.accessTokenMethods(newUser);
+      const refreshToken = newUser.refreshTokenMethods(newUser);
+      newUser.refreshToken = refreshToken;
       await newUser.save();
       let withoutRefeshTokenUser = await signup.findOne({ email: user_token.email });
       const options = { httpOnly: true, secure: true };

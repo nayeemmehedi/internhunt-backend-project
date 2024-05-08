@@ -3,7 +3,6 @@ const signup = require("../../models/signup.models.js");
 const { ApiResponse } = require("../../utils/apiHandler.js");
 
 const jobpostController = async (req, res) => {
-
   try {
     const value = await jobpost.create(req.body);
 
@@ -32,43 +31,35 @@ const jobpostController = async (req, res) => {
 
 const totalJobController = async (req, res) => {
   try {
-    const { searchTerm = "", page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
-    const regex = new RegExp(searchTerm, "i"); // 'i' for case-insensitive search
 
-    const totalDocs = await jobpost.countDocuments({
-      job_title: { $regex: regex },
-    });
+    // Fetch the paginated job data
+    const jobs = await jobpost.find({}).skip(skip).limit(limit + 1).lean();
 
-    const totalPages = Math.ceil(totalDocs / limit);
+    // Calculate the total number of pages
+    const totalDocs = jobs.length;
+    const hasMore = jobs.length > limit;
+    const totalPages = hasMore ? Math.ceil(totalDocs / limit) : page;
 
-    const jobs = await jobpost
-      .find({ job_title: { $regex: regex } })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    // Remove the extra document if it exists
+    if (hasMore) {
+      jobs.pop();
+    }
 
-    const responseData = new ApiResponse(
-      200,
-      {
-        message: "OK",
-        value: jobs,
-        currentPage: page,
-        totalPages,
-        totalDocs,
-        limit,
-      },
-      true
-    );
-
+    // Update the response with the job data
+    const responseData = {
+      message: "OK",
+      value: jobs,
+      currentPage: page,
+      totalPages: totalPages,
+      totalDocs: totalDocs,
+      limit: limit,
+    };
 
     res.json(responseData);
   } catch (error) {
-    res
-      .status(400)
-      .json(
-        new ApiResponse(400, { message: error.message, error: error }, false)
-      );
+    res.status(400).json({ message: error.message, error: error });
   }
 };
 
