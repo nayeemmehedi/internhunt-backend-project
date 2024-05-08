@@ -59,7 +59,7 @@ const totalJobController = async (req, res) => {
 
     res.json( new ApiResponse(
       200,
-      { message: "Successfully Login", data: responseData },
+      responseData,
       true
     ));
   } catch (error) {
