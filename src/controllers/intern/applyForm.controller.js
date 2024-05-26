@@ -7,11 +7,16 @@ const applyFormController = async (req, res) => {
  
 
   try {
-    const user = await candidate.findOne({ candidate_email: req.body && req.body.candidate_email });
-    if (user) {
-      res.send(
-        new ApiResponse(200, { message: "User already Applied." }, true)
-      );
+    const user = await candidate.find({
+      $and: [
+        { candidate_email: req.body.candidate_email },
+        { jobPost_id: req.body.jobPost_id }
+      ]
+    });
+
+    if (user.length > 0) {
+      // User already applied
+      return res.status(400).json(new ApiResponse(400, { message: "User already Applied." }, true));
     }
 
     cloudinary.config({
