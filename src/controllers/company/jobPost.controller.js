@@ -29,59 +29,25 @@ const jobpostController = async (req, res) => {
   }
 };
 
-// const totalJobController = async (req, res) => {
-//   try {
-//     const { page = 1, limit = 10 } = req.query;
-//     const skip = (page - 1) * limit;
-
-//     // Fetch the paginated job data
-//     const jobs = await jobpost.find({}).skip(skip).limit(limit + 1).lean();
-
-//     // Calculate the total number of pages
-//     const totalDocs = jobs.length;
-//     const hasMore = jobs.length > limit;
-//     const totalPages = hasMore ? Math.ceil(totalDocs / limit) : page;
-
-//     // Remove the extra document if it exists
-//     if (hasMore) {
-//       jobs.pop();
-//     }
-
-//     // Update the response with the job data
-//     const responseData = {
-//       message: "OK",
-//       value: jobs,
-//       currentPage: page,
-//       totalPages: totalPages,
-//       totalDocs: totalDocs,
-//       limit: limit,
-//     };
-
-//     res.json( new ApiResponse(
-//       200,
-//       responseData,
-//       true
-//     ));
-//   } catch (error) {
-//     res.status(400).json({ message: error.message, error: error });
-//   }
-// };
-
 const totalJobController = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
-    // Use countDocuments to get the total number of documents for accurate total pages
-    const totalDocs = await jobpost.countDocuments();
-
     // Fetch the paginated job data
-    const jobs = await jobpost.find({}).skip(skip).limit(limit).lean();
+    const jobs = await jobpost.find({}).skip(skip).limit(limit + 1).lean();
 
-    // Calculate total pages based on the total document count
-    const totalPages = Math.ceil(totalDocs / limit);
+    // Calculate the total number of pages
+    const totalDocs = jobs.length;
+    const hasMore = jobs.length > limit;
+    const totalPages = hasMore ? Math.ceil(totalDocs / limit) : page;
 
-    // Response data with pagination details
+    // Remove the extra document if it exists
+    if (hasMore) {
+      jobs.pop();
+    }
+
+    // Update the response with the job data
     const responseData = {
       message: "OK",
       value: jobs,
@@ -91,11 +57,17 @@ const totalJobController = async (req, res) => {
       limit: limit,
     };
 
-    res.json(new ApiResponse(200, responseData, true));
+    res.json( new ApiResponse(
+      200,
+      responseData,
+      true
+    ));
   } catch (error) {
     res.status(400).json({ message: error.message, error: error });
   }
 };
+
+
 
 const singleJobDetailsController = async (req, res) => {
   try {
