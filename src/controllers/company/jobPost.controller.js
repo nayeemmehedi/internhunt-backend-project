@@ -29,51 +29,39 @@ const jobpostController = async (req, res) => {
   }
 };
 
-
 const totalJobController = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
-    const [result] = await jobpost.aggregate([
-      {
-        $facet: {
-          totalCount: [{ $count: 'count' }],
-          jobs: [
-            { $skip: skip },
-            { $limit: parseInt(limit) },
-            {
-              $project: {
-                // List only the fields you need
-                title: 1,
-                description: 1,
-                // Add other necessary fields
-              }
-            }
-          ]
-        }
-      },
-      {
-        $project: {
-          jobs: 1,
-          totalCount: { $arrayElemAt: ['$totalCount.count', 0] }
-        }
-      }
-    ]);
+    // Fetch the paginated job data
+    const jobs = await jobpost.find({}).skip(skip).limit(limit + 1).lean();
 
-    const { jobs, totalCount } = result;
-    const totalPages = Math.ceil(totalCount / limit);
+    // Calculate the total number of pages
+    const totalDocs = jobs.length;
+    const hasMore = jobs.length > limit;
+    const totalPages = hasMore ? Math.ceil(totalDocs / limit) : page;
 
+    // Remove the extra document if it exists
+    if (hasMore) {
+      jobs.pop();
+    }
+
+    // Update the response with the job data
     const responseData = {
       message: "OK",
       value: jobs,
-      currentPage: parseInt(page),
+      currentPage: page,
       totalPages: totalPages,
-      totalDocs: totalCount,
-      limit: parseInt(limit),
+      totalDocs: totalDocs,
+      limit: limit,
     };
 
-    res.json(new ApiResponse(200, responseData, true));
+    res.json( new ApiResponse(
+      200,
+      responseData,
+      true
+    ));
   } catch (error) {
     res.status(400).json({ message: error.message, error: error });
   }
