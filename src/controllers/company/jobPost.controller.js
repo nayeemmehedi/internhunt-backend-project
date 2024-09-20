@@ -29,43 +29,90 @@ const jobpostController = async (req, res) => {
   }
 };
 
+// const totalJobController = async (req, res) => {
+//   try {
+//     const { page = 1, limit = 10 } = req.query;
+//     const skip = (page - 1) * limit;
+
+//     // Fetch the paginated job data
+//     const jobs = await jobpost.find({}).skip(skip).limit(limit + 1).lean();
+
+//     // Calculate the total number of pages
+//     const totalDocs = jobs.length;
+//     const hasMore = jobs.length > limit;
+//     const totalPages = hasMore ? Math.ceil(totalDocs / limit) : page;
+
+//     // Remove the extra document if it exists
+//     if (hasMore) {
+//       jobs.pop();
+//     }
+
+//     // Update the response with the job data
+//     const responseData = {
+//       message: "OK",
+//       value: jobs,
+//       currentPage: page,
+//       totalPages: totalPages,
+//       totalDocs: totalDocs,
+//       limit: limit,
+//     };
+
+//     res.json( new ApiResponse(
+//       200,
+//       responseData,
+//       true
+//     ));
+//   } catch (error) {
+//     res.status(400).json({ message: error.message, error: error });
+//   }
+// };
+
+// timized Total Job Controller
+
 const totalJobController = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
 
-    // Fetch the paginated job data
-    const jobs = await jobpost.find({}).skip(skip).limit(limit + 1).lean();
+    const pipeline = [
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $skip: skip },
+            { $limit: parseInt(limit) },
+            // Remove the $project stage to include all fields
+          ]
+        }
+      },
+      {
+        $project: {
+          data: 1,
+          total: { $arrayElemAt: ["$metadata.total", 0] }
+        }
+      }
+    ];
 
-    // Calculate the total number of pages
-    const totalDocs = jobs.length;
-    const hasMore = jobs.length > limit;
-    const totalPages = hasMore ? Math.ceil(totalDocs / limit) : page;
+    const [result] = await jobpost.aggregate(pipeline).allowDiskUse(true);
 
-    // Remove the extra document if it exists
-    if (hasMore) {
-      jobs.pop();
-    }
+    const totalDocs = result.total || 0;
+    const totalPages = Math.ceil(totalDocs / limit);
 
-    // Update the response with the job data
     const responseData = {
       message: "OK",
-      value: jobs,
-      currentPage: page,
-      totalPages: totalPages,
-      totalDocs: totalDocs,
-      limit: limit,
+      value: result.data,
+      currentPage: parseInt(page),
+      totalPages,
+      totalDocs,
+      limit: parseInt(limit),
     };
 
-    res.json( new ApiResponse(
-      200,
-      responseData,
-      true
-    ));
+    res.json(new ApiResponse(200, responseData, true));
   } catch (error) {
-    res.status(400).json({ message: error.message, error: error });
+    res.status(400).json({ message: error.message, error });
   }
 };
+
 
 
 
@@ -165,3 +212,6 @@ module.exports = {
   showCvDetailsController,
   updateProject,
 };
+
+
+
